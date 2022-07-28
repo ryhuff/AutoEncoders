@@ -1,8 +1,6 @@
 #%%
 import matplotlib.pyplot as plt
 import numpy as np
-# import pyro
-# import pyro.distributions as dist
 import pytorch_lightning as pl
 import seaborn as sns
 import torch
@@ -16,7 +14,7 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import DataLoader, Dataset
 
 #%%
-wandb.login()
+# wandb.login()
 # %%
 class ExDataset(Dataset):
     def __init__(self, ID=0):
@@ -60,10 +58,10 @@ def load_dataset(idx):
     return dict(dataset=dataset, loaders=[train_loader, val_loader, test_loader], sets=[train_set, val_set, test_set])
         
 
-data_dict = load_dataset(2)
-dataset = data_dict['dataset']
-train_loader, val_loader, test_loader = data_dict['loaders']
-train_set, val_set, test_set = data_dict['sets']
+# data_dict = load_dataset(2)
+# dataset = data_dict['dataset']
+# train_loader, val_loader, test_loader = data_dict['loaders']
+# train_set, val_set, test_set = data_dict['sets']
 #%%
 
 class Encoder(nn.Module):
@@ -269,113 +267,81 @@ class AE(pl.LightningModule):
     
     
 
-# def train_model(model, date, train_loader, val_loader, test_loader, max_epoch=500):
-#     # Create a PyTorch Lightning trainer with the generation callback
-#     wandb_logger = WandbLogger(project=f'{model.name}', log_model="all")
-
-#     trainer = pl.Trainer(
-#         default_root_dir=f'../Results/Models/{date}/{model.name}/',
-#         gpus=1,
-#         max_epochs=max_epoch,
-#         auto_scale_batch_size=True,
-#         callbacks=[
-#             ModelCheckpoint(save_weights_only=True, save_last=True, every_n_epochs=10),
-#             LearningRateMonitor("epoch"),
-#         ],
-#         logger=wandb_logger
-#     )
-#     trainer.logger._log_graph = True  # If True, we plot the computation graph in tensorboard
-#     trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
-#     trainer.tune(model)
-
-#     trainer.fit(model, train_loader, val_loader)
-#     # Test best model on validation and test set
-#     val_result = trainer.test(model, dataloaders=val_loader, verbose=False)
-#     test_result = trainer.test(model, dataloaders=test_loader, verbose=False)
-#     result = {"test": test_result, "val": val_result}
-#     return model, result
-
-
 # %%
 
 
-def train_models_28Jul():
+# def train_models_28Jul():
 
-    ldims = [
-             [1024, 256, 16],
-             [1024, 256, 32],
-             [1024, 256, 64],
-             [1024, 512, 16],
-             [1024, 512, 32],
-             [1024, 512, 64],
-        ]
+#     ldims = [
+#              [1024, 256, 16],
+#              [1024, 256, 32],
+#              [1024, 256, 64],
+#              [1024, 512, 16],
+#              [1024, 512, 32],
+#              [1024, 512, 64],
+#         ]
 
-    out = {}
-    out['bad'] = []
+#     out = {}
+#     out['bad'] = []
 
-    # model_types = [AE, VAE]
-    model_types = [VAE]
-    for m in model_types:
-        for dim in ldims:
-            try:
-                model = m(dim)
+#     # model_types = [AE, VAE]
+#     model_types = [VAE]
+#     for m in model_types:
+#         for dim in ldims:
+#             try:
+#                 model = m(dim)
 
-                out_dir = '25Jul'
-                GPU = 1
+#                 out_dir = '25Jul'
+#                 GPU = 1
 
-                config = {
-                    'structure': model.name,
-                    'GPU': GPU,
-                    'n_layers': len(model.dims),
-                }
+#                 config = {
+#                     'structure': model.name,
+#                     'GPU': GPU,
+#                     'n_layers': len(model.dims),
+#                 }
 
-                for i, d in enumerate(model.dims):
-                    config[f'layer_{i}'] = d
+#                 for i, d in enumerate(model.dims):
+#                     config[f'layer_{i}'] = d
 
-                wandb_logger = WandbLogger(
-                    project=f'{out_dir}', 
-                    name=model.name,
-                    log_model="all"
-                )
+#                 wandb_logger = WandbLogger(
+#                     project=f'{out_dir}', 
+#                     name=model.name,
+#                     log_model="all"
+#                 )
 
-                wandb_logger.experiment.config.update(config)
+#                 wandb_logger.experiment.config.update(config)
 
-                trainer = pl.Trainer(
-                    default_root_dir=f'../Results/Models/{out_dir}',
-                    gpus=GPU,
-                    max_epochs=1000,
-                    auto_scale_batch_size=True,
-                    callbacks=[
-                        ModelCheckpoint(save_weights_only=True, save_last=True, every_n_epochs=10),
-                        LearningRateMonitor("epoch"),
-                    ],
-                    logger=wandb_logger
-                )
+#                 trainer = pl.Trainer(
+#                     default_root_dir=f'../Results/Models/{out_dir}',
+#                     gpus=GPU,
+#                     max_epochs=1000,
+#                     auto_scale_batch_size=True,
+#                     callbacks=[
+#                         ModelCheckpoint(save_weights_only=True, save_last=True, every_n_epochs=10),
+#                         LearningRateMonitor("epoch"),
+#                     ],
+#                     logger=wandb_logger
+#                 )
 
-                # log gradients and model topology
-                wandb_logger.watch(model)
+#                 # log gradients and model topology
+#                 wandb_logger.watch(model)
 
-                trainer.tune(model)
+#                 trainer.tune(model)
 
-                trainer.fit(model)
-                # Test best model on validation and test set
-                val_result = trainer.test(model, dataloaders=val_loader, verbose=False)
-                test_result = trainer.test(model, dataloaders=test_loader, verbose=False)
-                result = {"test": test_result, "val": val_result}
-                out[model.name] = result
-                wandb.finish()
-            except Exception as e:
-                out['bad'].append((m, dim))
-                try:
-                    wandb.finish()
-                except Exception:
-                    pass
+#                 trainer.fit(model)
+#                 # Test best model on validation and test set
+#                 val_result = trainer.test(model, dataloaders=val_loader, verbose=False)
+#                 test_result = trainer.test(model, dataloaders=test_loader, verbose=False)
+#                 result = {"test": test_result, "val": val_result}
+#                 out[model.name] = result
+#                 wandb.finish()
+#             except Exception as e:
+#                 out['bad'].append((m, dim))
+#                 try:
+#                     wandb.finish()
+#                 except Exception:
+#                     pass
 
-    return out
+#     return out
 
 # %%
-train_models_28Jul()
-# %%
-
-def load_model():
-    pass
